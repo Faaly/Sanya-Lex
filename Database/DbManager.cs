@@ -62,6 +62,20 @@ namespace SanyaLex.Database
             }   
         }
 
+        public float CalcuateSimilarity(float[] vectorA, float[] vectorB)
+        {
+            float score = 0;
+            for (int i = 0; i < vectorA.Length; i++)
+            {
+                score += vectorA[i] * vectorB[i];
+            }
+
+            return score;
+        }
+
+
+
+
         public void Dispose() => _connection.Dispose();
     }
 }
