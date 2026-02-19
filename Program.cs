@@ -14,8 +14,9 @@ namespace SanyaLex
             using var embManager = new EmbeddingManager(modelPath, tokenizerPath);
 
             dbManager.Initialize();
-            Console.WriteLine("Sanya-Lex is ready. Type something! (end with Strg+C)");
 
+            dbManager.GetAllKnowledge();
+            Console.WriteLine("\n\n\nSanya-Lex is ready. Type something! (end with Strg+C)");
 
             while (true)
             {

@@ -61,16 +61,6 @@ namespace SanyaLex.Database
                 NamedOnnxValue.CreateFromTensor("input_ids", inputTensor),
                 NamedOnnxValue.CreateFromTensor("attention_mask", maskTensor),
             };
-
-                foreach (var data in _session.InputMetadata)
-                {
-                    Console.WriteLine($"Input: {data.Key}, Shape: {string.Join("x", data.Value.Dimensions)}");
-                }
-                foreach (var output in _session.OutputMetadata)
-                {
-                    Console.WriteLine($"Output: {output.Key}");
-                }
-
                 //Inference
                 using var results = _session.Run(inputs);
 

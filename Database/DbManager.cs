@@ -5,8 +5,6 @@ namespace SanyaLex.Database
     class DbManager : IDisposable
     {
         private readonly SqliteConnection _connection;
-        // static string dbPath = "/home/faaly/SANYA/sanya-ltm.db";
-
         public DbManager(string dbPath)
         {
             _connection = new SqliteConnection($"Data Source={dbPath}");
@@ -15,9 +13,6 @@ namespace SanyaLex.Database
         public void Initialize()
         {
             _connection.Open();
-            //code
-
-
 
             var createTableSql = @"
                 CREATE TABLE IF NOT EXISTS Knowledge (
@@ -33,13 +28,11 @@ namespace SanyaLex.Database
 
         public void SaveEntry(string content, float[] vector)
         {
-            // Hier müssen wir den float[] Vektor in ein byte[] konvertieren
-            // Ein float hat 4 Bytes. Ein 384-Vektor braucht also 1536 Bytes.
             byte[] bytes = new byte[vector.Length * sizeof(float)];
             Buffer.BlockCopy(vector, 0, bytes, 0, bytes.Length);
 
             var insertSql = "INSERT INTO Knowledge (Content, Vector) VALUES ($content, $vector)";
-            
+
             using var command = _connection.CreateCommand();
             command.CommandText = insertSql;
             command.Parameters.AddWithValue("$content", content);
@@ -47,7 +40,28 @@ namespace SanyaLex.Database
             command.ExecuteNonQuery();
         }
 
+        public void GetAllKnowledge()
+        {
+            var extractSql = "SELECT Content, Vector FROM Knowledge";
+            using var command = _connection.CreateCommand();
+            command.CommandText = extractSql;
+
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                string content = reader.GetString(0);
+
+                byte[] bytes = (byte[])reader.GetValue(1);
+                    //float4byte
+                float[] extractVector = new float[bytes.Length / sizeof(float)];
+
+                Buffer.BlockCopy(bytes, 0, extractVector, 0, bytes.Length);
+
+                Console.WriteLine($"Output: {content}");
+            }   
+        }
+
         public void Dispose() => _connection.Dispose();
     }
 }
-
