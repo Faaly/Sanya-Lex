@@ -41,14 +41,14 @@ namespace SanyaLex.Database
             command.ExecuteNonQuery();
         }
 
-        public Dictionary<string, float[]> GetAllKnowledge()
+        public List<(string text, float[] extractVector)> GetAllKnowledge()
         {
             var extractSql = "SELECT Content, Vector FROM Knowledge";
             using var command = _connection.CreateCommand();
             command.CommandText = extractSql;
 
             using var reader = command.ExecuteReader();
-            Dictionary<string, float[]> kvp = new();
+            var list = new List<(string text, float[] extractVector)>();
             while (reader.Read())
             {
                 string text = reader.GetString(0);
@@ -58,10 +58,10 @@ namespace SanyaLex.Database
                 float[] extractVector = new float[bytes.Length / sizeof(float)];
 
                 Buffer.BlockCopy(bytes, 0, extractVector, 0, bytes.Length);
-                kvp.Add(text, extractVector);
+                list.Add((text, extractVector));
             }
 
-            return kvp;
+            return list;
         }
 
         public float CalcuateSimilarity(float[] vectorA, float[] vectorB)
@@ -81,13 +81,13 @@ namespace SanyaLex.Database
             string bestMatch = "No match";
 
             var memories = GetAllKnowledge();
-            foreach (var entry in memories)
+            foreach (var memory in memories)
             {
-                float currentScore = CalcuateSimilarity(questionVector, entry.Value);
+                float currentScore = CalcuateSimilarity(questionVector, memory.extractVector);
                 if (currentScore > bestScore)
                 {
                     bestScore = currentScore;
-                    bestMatch = entry.Key;
+                    bestMatch = memory.text;
                 }
             }
 
