@@ -19,30 +19,81 @@ namespace SanyaLex.Database
         {
             var encoding = _tokenizer.Encode(input, true).First();
 
-            long[] ids = encoding.Ids.Select(x => (long)x).ToArray();
-            long[] mask = encoding.AttentionMask.Select(x => (long)x).ToArray();
-            long[] typeIds = new long[ids.Length];
+            const int fixedLength = 128;
 
-            // define shape : [BatchSize (1), SequenceLength]
-            int[] shape = { 1, ids.Length };
+            long[] ids = new long[fixedLength];
+            long[] mask = new long[fixedLength];
+            long[] typeIds = new long[fixedLength];
 
-            //create Tensors
-            var inputTensor = new DenseTensor<long>(ids, shape);
-            var maskTensor = new DenseTensor<long>(mask, shape);
-            var typeTensor = new DenseTensor<long>(typeIds, shape);
+            int count = Math.Min(encoding.Ids.Count, fixedLength);
+            for (int i = 0; i < count; i++)
+            {
+                ids[i] = (long)encoding.Ids[i];
+                if (i < encoding.AttentionMask.Count)
+                {
+                    mask[i] = (long)encoding.AttentionMask[i];
+                }
+                else
+                {
+                    mask[i] = 1L;
+                }
+            }
 
-            //map input for sesson
-            var inputs = new List<NamedOnnxValue>
+            int[] shape = { 1, fixedLength };
+            try
+            {
+                DenseTensor<long> inputTensor;
+                try
+                {
+                    inputTensor = new DenseTensor<long>(ids, shape);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"ERROR while creating inputTensor: {ex.Message}");
+                }
+
+                var maskTensor = new DenseTensor<long>(mask, shape);
+                var typeTensor = new DenseTensor<long>(typeIds, shape);
+
+                //map input for sesson
+                var inputs = new List<NamedOnnxValue>
             {
                 NamedOnnxValue.CreateFromTensor("input_ids", inputTensor),
                 NamedOnnxValue.CreateFromTensor("attention_mask", maskTensor),
-                NamedOnnxValue.CreateFromTensor("token_type_ids", typeTensor)
             };
 
-            // 2. Inference ausführen
-            using var results = _session.Run(inputs);
+                foreach (var data in _session.InputMetadata)
+                {
+                    Console.WriteLine($"Input: {data.Key}, Shape: {string.Join("x", data.Value.Dimensions)}");
+                }
+                foreach (var output in _session.OutputMetadata)
+                {
+                    Console.WriteLine($"Output: {output.Key}");
+                }
 
-            return results.First().AsEnumerable<float>().ToArray();
+                //Inference
+                using var results = _session.Run(inputs);
+
+                var outputValue = results.First();
+                var outputTensor = outputValue.AsTensor<float>();
+                var firstOutput = results.First().AsTensor<float>();
+
+                int dimensions = firstOutput.Dimensions[2];
+                float[] embedding = new float[dimensions];
+
+                for (int i = 0; i < dimensions; i++)
+                {
+                    embedding[i] = firstOutput[0, 0, i];
+                }
+
+                return embedding;
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[INTERNAL ERROR] {ex.Message}");
+                throw;
+            }
         }
 
         public void Dispose()
