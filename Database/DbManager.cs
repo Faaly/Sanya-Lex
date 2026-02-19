@@ -1,3 +1,4 @@
+using System.Numerics;
 using Microsoft.Data.Sqlite;
 
 namespace SanyaLex.Database
@@ -40,26 +41,27 @@ namespace SanyaLex.Database
             command.ExecuteNonQuery();
         }
 
-        public void GetAllKnowledge()
+        public Dictionary<string, float[]> GetAllKnowledge()
         {
             var extractSql = "SELECT Content, Vector FROM Knowledge";
             using var command = _connection.CreateCommand();
             command.CommandText = extractSql;
 
             using var reader = command.ExecuteReader();
-
+            Dictionary<string, float[]> kvp = new();
             while (reader.Read())
             {
-                string content = reader.GetString(0);
+                string text = reader.GetString(0);
 
                 byte[] bytes = (byte[])reader.GetValue(1);
-                    //float4byte
+                //float4byte
                 float[] extractVector = new float[bytes.Length / sizeof(float)];
 
                 Buffer.BlockCopy(bytes, 0, extractVector, 0, bytes.Length);
+                kvp.Add(text, extractVector);
+            }
 
-                Console.WriteLine($"Output: {content}");
-            }   
+            return kvp;
         }
 
         public float CalcuateSimilarity(float[] vectorA, float[] vectorB)
@@ -73,8 +75,27 @@ namespace SanyaLex.Database
             return score;
         }
 
+        public void WriteMatch(float[] questionVector)
+        {
+            float bestScore = 0f;
+            string bestMatch = "No match";
 
+            var memories = GetAllKnowledge();
+            foreach (var entry in memories)
+            {
+                float currentScore = CalcuateSimilarity(questionVector, entry.Value);
+                if (currentScore > bestScore)
+                {
+                    bestScore = currentScore;
+                    bestMatch = entry.Key;
+                }
+            }
 
+            if (bestScore > 0.69f)
+            {
+                Console.WriteLine($"Top Match: {bestScore}: {bestMatch}");
+            }
+        }
 
         public void Dispose() => _connection.Dispose();
     }
