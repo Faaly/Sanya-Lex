@@ -1,6 +1,6 @@
-using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-
+using Microsoft.ML.OnnxRuntime;
+using Tokenizers.HuggingFace.Tokenizer;
 
 namespace SanyaLex.Database
 {
@@ -9,27 +9,48 @@ namespace SanyaLex.Database
         private readonly InferenceSession _session;
         private readonly Tokenizer _tokenizer;
 
-        public EmbeddingManager(string modelPath, string vocabPath)
+        public EmbeddingManager(string modelPath, string tokenizerJsonPath)
         {
-            // Hier laden wir nur die schweren Ressourcen einmalig
             _session = new InferenceSession(modelPath);
-            _tokenizer = new BertTokenizer(vocabPath);
+            _tokenizer = Tokenizer.FromFile(tokenizerJsonPath);
         }
 
-        public float[] GetEmbedding(string text)
+        public float[] GetEmbedding(string input)
         {
-            // Hier passiert die Arbeit, wenn ein Text reinkommt
-            var encoded = _tokenizer.Encode(text);
-            var input = encoded.First(); 
+            var encoding = _tokenizer.Encode(input, true).First();
 
-            // Diese Daten schicken wir gleich an das ONNX-Modell
-            long[] inputIds = input.InputIds;
-            long[] attentionMask = input.AttentionMask;
-            long[] typeIds = input.TokenTypeIds;
+            long[] ids = encoding.Ids.Select(x => (long)x).ToArray();
+            long[] mask = encoding.AttentionMask.Select(x => (long)x).ToArray();
+            long[] typeIds = new long[ids.Length];
 
-            // Platzhalter: Hier kommt gleich die ONNX-Magie
-            return new float[384];}
+            // define shape : [BatchSize (1), SequenceLength]
+            int[] shape = { 1, ids.Length };
 
-        public void Dispose() => _session.Dispose();
+            //create Tensors
+            var inputTensor = new DenseTensor<long>(ids, shape);
+            var maskTensor = new DenseTensor<long>(mask, shape);
+            var typeTensor = new DenseTensor<long>(typeIds, shape);
+
+            //map input for sesson
+            var inputs = new List<NamedOnnxValue>
+            {
+                NamedOnnxValue.CreateFromTensor("input_ids", inputTensor),
+                NamedOnnxValue.CreateFromTensor("attention_mask", maskTensor),
+                NamedOnnxValue.CreateFromTensor("token_type_ids", typeTensor)
+            };
+
+            // 2. Inference ausführen
+            using var results = _session.Run(inputs);
+
+            return results.First().AsEnumerable<float>().ToArray();
+        }
+
+        public void Dispose()
+        {
+            _session?.Dispose();
+            _tokenizer?.Dispose();
+        }
+
+
     }
 }
