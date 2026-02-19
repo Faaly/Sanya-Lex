@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# other stuff
+sanya-lex_model/
+
 # dotenv files
 .env
 
