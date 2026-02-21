@@ -19,21 +19,37 @@ namespace SanyaLex
 
             dbManager.GetAllKnowledge();
 
-            string userInput = string.Join(" ", args);
-            string match = "";
-            try
+            if (args[0] == "--ltmAdd")
             {
-                float[] vector = embManager.GetEmbedding(userInput);
-                match = dbManager.FindMatch(vector);
-
-                if(!string.IsNullOrEmpty(match)) Console.Write(match);
+                string textToStore = string.Join(" ", args.Skip(1));
+                try
+                {
+                    float[] vector = embManager.GetEmbedding(textToStore);
+                    dbManager.SaveEntry(textToStore, vector);
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    Console.Error.WriteLine($"[ERROR] {ex.ParamName}");
+                    Console.Error.WriteLine($"[STACKTRACE] {ex.StackTrace}");
+                }
             }
-            catch (ArgumentOutOfRangeException ex)
+            else
             {
-                Console.Error.WriteLine($"[ERROR] {ex.ParamName}");
-                Console.Error.WriteLine($"[STACKTRACE] {ex.StackTrace}");
-            }
+                string userInput = string.Join(" ", args);
+                string match = "";
+                try
+                {
+                    float[] vector = embManager.GetEmbedding(userInput);
+                    match = dbManager.FindMatch(vector);
 
+                    if (!string.IsNullOrEmpty(match)) Console.Write(match);
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    Console.Error.WriteLine($"[ERROR] {ex.ParamName}");
+                    Console.Error.WriteLine($"[STACKTRACE] {ex.StackTrace}");
+                }
+            }
 
             // Console.WriteLine("\n\n\nSanya-Lex is ready. Type something! (end with Strg+C)");
 
