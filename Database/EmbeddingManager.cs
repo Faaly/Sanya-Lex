@@ -76,7 +76,9 @@ namespace SanyaLex.Database
                     embedding[i] = firstOutput[0, 0, i];
                 }
 
-                return embedding;
+                float[] normalizedEmbedding = Normalize(embedding);
+
+                return normalizedEmbedding;
 
             }
             catch (Exception ex)
@@ -84,6 +86,22 @@ namespace SanyaLex.Database
                 Console.WriteLine($"[INTERNAL ERROR] {ex.Message}");
                 throw;
             }
+        }
+
+        public float[] Normalize(float[] vector)
+        {
+            float sum = 0;
+            for (int i = 0; i < vector.Length; i++)
+            {
+                sum += vector[i] * vector[i];
+            }
+            float length = MathF.Sqrt(sum);
+
+            if (length > 1e-10f)
+            {
+                for (int i = 0; i < vector.Length; i++) vector[i] /= length;
+            }
+            return vector;
         }
 
         public void Dispose()

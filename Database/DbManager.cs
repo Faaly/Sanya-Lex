@@ -64,7 +64,7 @@ namespace SanyaLex.Database
             return list;
         }
 
-        public float CalcuateSimilarity(float[] vectorA, float[] vectorB)
+        public float CalculateSimilarity(float[] vectorA, float[] vectorB)
         {
             float score = 0;
             for (int i = 0; i < vectorA.Length; i++)
@@ -83,7 +83,7 @@ namespace SanyaLex.Database
             var memories = GetAllKnowledge();
             foreach (var memory in memories)
             {
-                float currentScore = CalcuateSimilarity(questionVector, memory.extractVector);
+                float currentScore = CalculateSimilarity(questionVector, memory.extractVector);
                 if (currentScore > bestScore)
                 {
                     bestScore = currentScore;
