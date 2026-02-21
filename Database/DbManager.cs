@@ -75,7 +75,7 @@ namespace SanyaLex.Database
             return score;
         }
 
-        public void WriteMatch(float[] questionVector)
+        public string FindMatch(float[] questionVector)
         {
             float bestScore = 0f;
             string bestMatch = "No match";
@@ -93,8 +93,10 @@ namespace SanyaLex.Database
 
             if (bestScore > 0.69f)
             {
-                Console.WriteLine($"Top Match: {bestScore}: {bestMatch}");
+                return $"{bestMatch}";
             }
+
+            return " ";
         }
 
         public void Dispose() => _connection.Dispose();
