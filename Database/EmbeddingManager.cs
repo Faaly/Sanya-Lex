@@ -83,7 +83,7 @@ namespace SanyaLex.Database
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[INTERNAL ERROR] {ex.Message}");
+                Console.Error.WriteLine($"[INTERNAL ERROR] {ex.Message}");
                 throw;
             }
         }

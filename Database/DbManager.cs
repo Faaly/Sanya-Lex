@@ -84,14 +84,16 @@ namespace SanyaLex.Database
             foreach (var memory in memories)
             {
                 float currentScore = CalculateSimilarity(questionVector, memory.extractVector);
+                //Console.WriteLine($"DEBUG - current score of {memory.text} : {currentScore}");
                 if (currentScore > bestScore)
                 {
                     bestScore = currentScore;
                     bestMatch = memory.text;
+                    //Console.WriteLine($"DEBUG - best score of {memory.text} : {bestScore}");
                 }
             }
 
-            if (bestScore > 0.69f)
+            if (bestScore > 0.96f)
             {
                 return $"{bestMatch}";
             }
