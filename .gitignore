@@ -5,6 +5,7 @@
 
 # other stuff
 sanya-lex_model/
+*.drawio
 
 # dotenv files
 .env
