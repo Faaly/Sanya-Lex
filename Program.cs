@@ -36,13 +36,12 @@ namespace SanyaLex
             else
             {
                 string userInput = string.Join(" ", args);
-                string match = "";
                 try
                 {
                     float[] vector = embManager.GetEmbedding(userInput);
-                    match = dbManager.FindMatch(vector);
+                    var matches = dbManager.FindMatch(vector);
 
-                    if (!string.IsNullOrEmpty(match)) Console.Write(match);
+                    if (matches != null && matches.Length > 0) Console.Write("- " + string.Join("\n- ", matches));
                 }
                 catch (ArgumentOutOfRangeException ex)
                 {

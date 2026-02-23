@@ -75,30 +75,29 @@ namespace SanyaLex.Database
             return score;
         }
 
-        public string FindMatch(float[] questionVector)
+        public string[]? FindMatch(float[] questionVector)
         {
-            float bestScore = 0f;
-            string bestMatch = "No match";
+            List<(float Score, string Text)> candidates = new();
 
             var memories = GetAllKnowledge();
             foreach (var memory in memories)
             {
                 float currentScore = CalculateSimilarity(questionVector, memory.extractVector);
-                //Console.WriteLine($"DEBUG - current score of {memory.text} : {currentScore}");
-                if (currentScore > bestScore)
+                //Console.WriteLine($"DEBUG: Current Score of Match {memory.text} : {currentScore}");
+                if (currentScore > 0.91f) //Threshold
                 {
-                    bestScore = currentScore;
-                    bestMatch = memory.text;
-                    //Console.WriteLine($"DEBUG - best score of {memory.text} : {bestScore}");
+                    //Console.WriteLine($"DEBUG: Best Score of Match {memory.text} : {currentScore}");
+                    candidates.Add((currentScore, memory.text));
                 }
             }
 
-            if (bestScore > 0.96f)
-            {
-                return $"{bestMatch}";
-            }
+            if (candidates.Count == 0) return null;
 
-            return " ";
+            return candidates
+                .OrderByDescending(c => c.Score)
+                .Take(3)
+                .Select(c => c.Text)
+                .ToArray();
         }
 
         public void Dispose() => _connection.Dispose();
