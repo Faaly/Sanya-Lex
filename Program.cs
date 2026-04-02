@@ -8,6 +8,12 @@ namespace SanyaLex
         {
             if (args.Length == 0) return;
 
+            if (args.Length < 2) 
+            {
+                Console.WriteLine("Usage: sanya-lex <flag> <content>");
+                return;
+            }
+
             string dbPath = "/home/faaly/SANYA/sanya-ltm.db";
             string modelPath = "/home/faaly/SANYA/sanya-lex_model/model.onnx";
             string tokenizerPath = "/home/faaly/SANYA/sanya-lex_model/tokenizer.json";
@@ -17,37 +23,43 @@ namespace SanyaLex
 
             dbManager.Initialize();
 
-            dbManager.GetAllKnowledge();
+            string flag = args[0];
+            string content = string.Join(" ", args.Skip(1));
 
-            if (args[0] == "--ltmAdd")
+
+            try
             {
-                string textToStore = string.Join(" ", args.Skip(1));
-                try
+                switch (flag)
                 {
-                    float[] vector = embManager.GetEmbedding(textToStore);
-                    dbManager.SaveEntry(textToStore, vector);
-                }
-                catch (ArgumentOutOfRangeException ex)
-                {
-                    Console.Error.WriteLine($"[ERROR] {ex.ParamName}");
-                    Console.Error.WriteLine($"[STACKTRACE] {ex.StackTrace}");
+                    case "--ltmAdd-fact":
+                        dbManager.SaveEntry(content, embManager.GetEmbedding(content), "Fact");
+                        break;
+
+                    case "--ltmAdd-tool":
+                        dbManager.SaveEntry(content, embManager.GetEmbedding(content), "Tool");
+                        break;
+
+                    case "--tool":
+                        var toolMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Tool");
+                        if (toolMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", toolMatches));
+                        break;
+
+                    case "--fact":
+                        var factMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Fact");
+                        if (factMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", factMatches));
+                        break;
+                        
+                    default:
+                        string fullInput = string.Join(" ", args);
+                        var generalMatches = dbManager.FindMatch(embManager.GetEmbedding(fullInput), "Fact"); 
+                        if (generalMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", generalMatches));
+                        break;
                 }
             }
-            else
+            catch (ArgumentOutOfRangeException ex)
             {
-                string userInput = string.Join(" ", args);
-                try
-                {
-                    float[] vector = embManager.GetEmbedding(userInput);
-                    var matches = dbManager.FindMatch(vector);
-
-                    if (matches != null && matches.Length > 0) Console.Write("- " + string.Join("\n- ", matches));
-                }
-                catch (ArgumentOutOfRangeException ex)
-                {
-                    Console.Error.WriteLine($"[ERROR] {ex.ParamName}");
-                    Console.Error.WriteLine($"[STACKTRACE] {ex.StackTrace}");
-                }
+                Console.Error.WriteLine($"[ERROR] {ex.ParamName}");
+                Console.Error.WriteLine($"[STACKTRACE] {ex.StackTrace}");
             }
         }
     }
