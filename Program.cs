@@ -26,17 +26,22 @@ namespace SanyaLex
             string flag = args[0];
             string content = string.Join(" ", args.Skip(1));
 
-
             try
             {
                 switch (flag)
                 {
-                    case "--ltmAdd-fact":
-                        dbManager.SaveEntry(content, embManager.GetEmbedding(content), "Fact");
-                        break;
+                    case "--ltmAdd":
 
-                    case "--ltmAdd-tool":
-                        dbManager.SaveEntry(content, embManager.GetEmbedding(content), "Tool");
+                        if (args.Length < 3) 
+                            {
+                                Console.Error.WriteLine("[ERROR] Missing arguments. Usage: --ltmAdd [--fact|--tool] <content>");
+                                return; 
+                            }
+                            
+                        string category = args[1] == "--tool" ? "Tool" : "Fact";
+                        content = string.Join(" ", args.Skip(2));
+
+                        dbManager.SaveEntry(content, embManager.GetEmbedding(content), category);
                         break;
 
                     case "--tool":
