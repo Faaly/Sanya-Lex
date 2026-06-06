@@ -100,24 +100,28 @@ namespace SanyaLex.Database
             {
                 float currentScore = CalculateSimilarity(questionVector, memory.extractVector);
 
-                if (category == "Tool" && questionWords != null)
+                int keywordIndex = memory.text.IndexOf("KEYWORDS:", StringComparison.OrdinalIgnoreCase);
+
+                if (keywordIndex != -1 && category == "Tool" && questionWords != null)
                 {
-                    string lowerContent = memory.text.ToLower();
+                    string pureKeywords = memory.text.Substring(keywordIndex).ToLower();
 
                     foreach(var word in questionWords)
                     {
-                        if (word.Length > 3 && lowerContent.Contains(word))
+                        if (word.Length > 3 && pureKeywords.Contains(word))
                         {
                             currentScore += 0.05f;
                         }
                     }
                 }
-                
+
                 //Console.WriteLine($"DEBUG: Current Score of Match {memory.text} : {currentScore}");
                 if (currentScore > threshold) //Threshold
                 {
+                    string TextWithoutKeyWords = (keywordIndex != -1) ? memory.text.Substring(0, keywordIndex).Trim() : memory.text;
+
                     //Console.WriteLine($"DEBUG: Best Score of Match {memory.text} : {currentScore}");
-                    candidates.Add((currentScore, memory.text));
+                    candidates.Add((currentScore, TextWithoutKeyWords));
                 }
             }
 
