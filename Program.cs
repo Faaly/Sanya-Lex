@@ -45,18 +45,18 @@ namespace SanyaLex
                         break;
 
                     case "--tool":
-                        var toolMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Tool");
+                        var toolMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Tool", content);
                         if (toolMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", toolMatches));
                         break;
 
                     case "--fact":
-                        var factMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Fact");
+                        var factMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Fact", content);
                         if (factMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", factMatches));
                         break;
                         
                     default:
                         string fullInput = string.Join(" ", args);
-                        var generalMatches = dbManager.FindMatch(embManager.GetEmbedding(fullInput), "Fact"); 
+                        var generalMatches = dbManager.FindMatch(embManager.GetEmbedding(fullInput), "Fact", fullInput); 
                         if (generalMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", generalMatches));
                         break;
                 }

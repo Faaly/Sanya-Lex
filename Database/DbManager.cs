@@ -104,23 +104,28 @@ namespace SanyaLex.Database
 
                 if (keywordIndex != -1 && category == "Tool" && questionWords != null)
                 {
+
                     string pureKeywords = memory.text.Substring(keywordIndex).ToLower();
+                    // Console.WriteLine($"DEBUG of Tool: Keywords: {pureKeywords}");
+                    
 
                     foreach(var word in questionWords)
                     {
+                        // Console.WriteLine($"DEBUG of Tool: single QuestionWord: {word}");
                         if (word.Length > 3 && pureKeywords.Contains(word))
                         {
                             currentScore += 0.05f;
+                            // Console.WriteLine($"DEBUG of Tool: hit: {word}");
                         }
                     }
                 }
 
-                //Console.WriteLine($"DEBUG: Current Score of Match {memory.text} : {currentScore}");
+                // Console.WriteLine($"DEBUG: Current Score of Match {memory.text} : {currentScore}");
                 if (currentScore > threshold) //Threshold
                 {
                     string TextWithoutKeyWords = (keywordIndex != -1) ? memory.text.Substring(0, keywordIndex).Trim() : memory.text;
 
-                    //Console.WriteLine($"DEBUG: Best Score of Match {memory.text} : {currentScore}");
+                    // Console.WriteLine($"DEBUG: Best Score of Match {memory.text} : {currentScore}");
                     candidates.Add((currentScore, TextWithoutKeyWords));
                 }
             }
