@@ -86,7 +86,7 @@ namespace SanyaLex.Database
             return score;
         }
 
-        public string[]? FindMatch(float[] questionVector, string category)
+        public string[]? FindMatch(float[] questionVector, string category, string rawQuestionText = "")
         {
             List<(float Score, string Text)> candidates = new();
 
@@ -94,9 +94,25 @@ namespace SanyaLex.Database
             
             float threshold = (category == "Tool") ? 0.65f : 0.85f;
 
+            string[]? questionWords = rawQuestionText?.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
             foreach (var memory in memories)
             {
                 float currentScore = CalculateSimilarity(questionVector, memory.extractVector);
+
+                if (category == "Tool" && questionWords != null)
+                {
+                    string lowerContent = memory.text.ToLower();
+
+                    foreach(var word in questionWords)
+                    {
+                        if (word.Length > 3 && lowerContent.Contains(word))
+                        {
+                            currentScore += 0.05f;
+                        }
+                    }
+                }
+                
                 //Console.WriteLine($"DEBUG: Current Score of Match {memory.text} : {currentScore}");
                 if (currentScore > threshold) //Threshold
                 {
