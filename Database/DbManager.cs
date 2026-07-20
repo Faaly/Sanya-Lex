@@ -18,9 +18,11 @@ namespace SanyaLex.Database
             var createTableSql = @"
                 CREATE TABLE IF NOT EXISTS Knowledge (
                     Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    FunctionName TEXT,
                     Content TEXT NOT NULL,
                     Vector BLOB NOT NULL,
-                    Category TEXT NOT NULL
+                    Category TEXT NOT NULL,
+                    ToolArgs TEXT
                 );";
 
             using var command = _connection.CreateCommand();
@@ -36,30 +38,32 @@ namespace SanyaLex.Database
             
         }
 
-        public void SaveEntry(string content, float[] vector, string category)
+        public void SaveEntry(string content, float[] vector, string category, string? functionName = null, string? toolArgs = null)
         {
             byte[] bytes = new byte[vector.Length * sizeof(float)];
             Buffer.BlockCopy(vector, 0, bytes, 0, bytes.Length);
 
-            var insertSql = "INSERT INTO Knowledge (Content, Vector, Category) VALUES ($content, $vector, $category)";
+            var insertSql = "INSERT INTO Knowledge (Content, Vector, Category, FunctionName, ToolArgs) VALUES ($content, $vector, $category, $functionName, $toolArgs)";
 
             using var command = _connection.CreateCommand();
             command.CommandText = insertSql;
             command.Parameters.AddWithValue("$content", content);
             command.Parameters.AddWithValue("$vector", bytes);
             command.Parameters.AddWithValue("$category", category);
+            command.Parameters.AddWithValue("$functionName", (object?)functionName ?? DBNull.Value);
+            command.Parameters.AddWithValue("$toolArgs", (object?)toolArgs ?? DBNull.Value);
             command.ExecuteNonQuery();
         }
 
-        public List<(string text, float[] extractVector)> GetAllKnowledge(string category)
+        public List<(string text, float[] extractVector,string? functionName, string? toolArgs)> GetAllKnowledge(string category)
         {
-            var extractSql = "SELECT Content, Vector FROM Knowledge WHERE Category = $category";
+            var extractSql = "SELECT Content, Vector, FunctionName, ToolArgs FROM Knowledge WHERE Category = $category";
             using var command = _connection.CreateCommand();
             command.CommandText = extractSql;
             command.Parameters.AddWithValue("$category", category);
 
             using var reader = command.ExecuteReader();
-            var list = new List<(string text, float[] extractVector)>();
+            var list = new List<(string text, float[] extractVector, string? functionName, string? toolArgs)>();
             while (reader.Read())
             {
                 string text = reader.GetString(0);
@@ -69,7 +73,10 @@ namespace SanyaLex.Database
                 float[] extractVector = new float[bytes.Length / sizeof(float)];
 
                 Buffer.BlockCopy(bytes, 0, extractVector, 0, bytes.Length);
-                list.Add((text, extractVector));
+
+                string? functionName = reader.IsDBNull(2) ? null : reader.GetString(2);
+                string? toolArgs = reader.IsDBNull(3) ? null : reader.GetString(3);
+                list.Add((text, extractVector, functionName, toolArgs));
             }
 
             return list;
@@ -86,9 +93,9 @@ namespace SanyaLex.Database
             return score;
         }
 
-        public string[]? FindMatch(float[] questionVector, string category, string rawQuestionText = "")
+        public KnowledgeMatch[]? FindMatch(float[] questionVector, string category, string rawQuestionText = "")
         {
-            List<(float Score, string Text)> candidates = new();
+            List<(float Score, KnowledgeMatch Match)> candidates = new();
 
             var memories = GetAllKnowledge(category);
             
@@ -100,7 +107,7 @@ namespace SanyaLex.Database
             {
                 float currentScore = CalculateSimilarity(questionVector, memory.extractVector);
 
-                int keywordIndex = memory.text.IndexOf("KEYWORDS:", StringComparison.OrdinalIgnoreCase);
+                int keywordIndex = memory.text.IndexOf("|||KEYWORDS:", StringComparison.OrdinalIgnoreCase);
 
                 if (keywordIndex != -1 && category == "Tool" && questionWords != null)
                 {
@@ -125,8 +132,15 @@ namespace SanyaLex.Database
                 {
                     string TextWithoutKeyWords = (keywordIndex != -1) ? memory.text.Substring(0, keywordIndex).Trim() : memory.text;
 
+                    var matchObj = new KnowledgeMatch
+                    {
+                        FunctionName = memory.functionName,
+                        Content = TextWithoutKeyWords,
+                        ToolArgs = memory.toolArgs
+                    };
+
                     // Console.WriteLine($"DEBUG: Best Score of Match {memory.text} : {currentScore}");
-                    candidates.Add((currentScore, TextWithoutKeyWords));
+                    candidates.Add((currentScore, matchObj));
                 }
             }
 
@@ -135,7 +149,7 @@ namespace SanyaLex.Database
             return candidates
                 .OrderByDescending(c => c.Score)
                 .Take(3)
-                .Select(c => c.Text)
+                .Select(c => c.Match)
                 .ToArray();
         }
 
