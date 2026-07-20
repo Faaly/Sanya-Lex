@@ -1,4 +1,6 @@
 ﻿using SanyaLex.Database;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace SanyaLex
 {
@@ -46,18 +48,60 @@ namespace SanyaLex
 
                     case "--tool":
                         var toolMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Tool", content);
-                        if (toolMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", toolMatches));
+
+                        var toolEnvelope = new JsonObject
+                        {
+                            ["type"] = "tool"
+                        };
+
+                        var jsonArray = new JsonArray();
+
+                        if (toolMatches != null)
+                        {
+                            foreach (var match in toolMatches)
+                            {
+                                
+                                var functionObject = new JsonObject
+                                {
+                                    ["name"] = match.FunctionName,
+                                    ["description"] = match.Content,
+                                    ["parameters"] = JsonNode.Parse(match.ToolArgs ?? "{}")
+                                    
+                                };
+                                var toolNode = new JsonObject
+                                {
+                                    ["type"] = "function",
+                                    ["function"] = functionObject
+                                };
+
+                                jsonArray.Add(toolNode);
+                            
+                            }
+                        }
+                        toolEnvelope["data"] = jsonArray;
+                        Console.Write(JsonSerializer.Serialize(toolEnvelope));
                         break;
 
                     case "--fact":
                         var factMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Fact", content);
-                        if (factMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", factMatches));
+                        var factEnvelope = new JsonObject
+                        {
+                            ["type"] = "fact",
+                            ["data"] = factMatches?.Length > 0 ? "- " + string.Join("\n- ", factMatches.Select(m => m.Content)) : ""
+                        };
+
+                        Console.Write(JsonSerializer.Serialize(factEnvelope));
                         break;
                         
                     default:
                         string fullInput = string.Join(" ", args);
                         var generalMatches = dbManager.FindMatch(embManager.GetEmbedding(fullInput), "Fact", fullInput); 
-                        if (generalMatches?.Length > 0) Console.Write("- " + string.Join("\n- ", generalMatches));
+                        var defaultEnvelope = new JsonObject
+                        {
+                            ["type"] = "fact",
+                            ["data"] = generalMatches?.Length > 0 ? "- " + string.Join("\n- ", generalMatches.Select(m => m.Content)) : ""
+                        };
+                        Console.Write(JsonSerializer.Serialize(defaultEnvelope));
                         break;
                 }
             }
