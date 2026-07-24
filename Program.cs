@@ -74,23 +74,24 @@ namespace SanyaLex
                                     ["function"] = functionObject
                                 };
 
-                                jsonArray.Add(toolNode);
+                                jsonArray.Add((JsonNode)toolNode);
                             
                             }
                         }
                         toolEnvelope["data"] = jsonArray;
-                        Console.Write(JsonSerializer.Serialize(toolEnvelope));
+                        Console.Write(toolEnvelope.ToJsonString());
                         break;
 
                     case "--fact":
                         var factMatches = dbManager.FindMatch(embManager.GetEmbedding(content), "Fact", content);
+                        
                         var factEnvelope = new JsonObject
                         {
                             ["type"] = "fact",
-                            ["data"] = factMatches?.Length > 0 ? "- " + string.Join("\n- ", factMatches.Select(m => m.Content)) : ""
+                            ["data"] = factMatches?.Length > 0 ? "- " + string.Join(" - ", factMatches.Select(m => m.Content)) : ""
                         };
 
-                        Console.Write(JsonSerializer.Serialize(factEnvelope));
+                        Console.Write(factEnvelope.ToJsonString());
                         break;
                         
                     default:
@@ -99,9 +100,9 @@ namespace SanyaLex
                         var defaultEnvelope = new JsonObject
                         {
                             ["type"] = "fact",
-                            ["data"] = generalMatches?.Length > 0 ? "- " + string.Join("\n- ", generalMatches.Select(m => m.Content)) : ""
+                            ["data"] = generalMatches?.Length > 0 ? "- " + string.Join(" - ", generalMatches.Select(m => m.Content)) : ""
                         };
-                        Console.Write(JsonSerializer.Serialize(defaultEnvelope));
+                        Console.Write(defaultEnvelope.ToJsonString());
                         break;
                 }
             }
