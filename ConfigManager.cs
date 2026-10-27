@@ -119,7 +119,6 @@ namespace SanyaLex
             return Path.Combine(GetDataDirectory(), "tokenizer.json");
         }
 
-        // Hilfsfunktion, damit Kürzel wie "~/" korrekt aufgelöst werden
         private static string ExpandPath(string path)
         {
             if (path.StartsWith("~"))
