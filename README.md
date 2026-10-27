@@ -7,15 +7,16 @@
 ---
 
 ## Overview
-**Sanya-Lex** is a lightweight, high-performance sub-system for **SANYA** (Zsh AI Orchestrator). It handles **local RAG (Retrieval-Augmented Generation)**, **semantic facts**, and **dynamic tool injection** using **C# Native AOT Binary**, **ONNX Runtime for embeddings**, and **SQLite Vector Database**.
+**Sanya-Lex** is a lightweight, high-performance sub-system for **SANYA** (*Shell-integrated Artificial Neural Yielding Assistant. A shell-native, local ReAct agent and MCP client with a JIT-RAG tool architecture.*)
+Sanya-Lex handles **local RAG (Retrieval-Augmented Generation)**, **semantic facts**, and **dynamic tool injection** using **C# Native AOT Binary**, **ONNX Runtime for embeddings**, and **SQLite Vector Database**.
 
 ---
 
 ## Features
-✅ **Local RAG** – Retrieve and generate context from local data.
-✅ **Semantic Facts** – Store and query structured knowledge.
-✅ **Dynamic Tool Injection** – Register and invoke tools on-the-fly.
-✅ **Lightweight & Fast** – Optimized for Zsh integration.
+- **Local RAG** – Retrieve and generate context from local data.
+- **Semantic Facts** – Store and query structured knowledge.
+- **Dynamic Tool Injection** – Register and invoke tools on-the-fly.
+- **Lightweight & Fast** – Optimized for Zsh integration.
 
 ---
 
@@ -30,7 +31,7 @@
 
 ### 1. Clone the Repository
 ```sh
-git clone https://github.com/your/repo/sanya-lex.git
+git clone https://github.com/Faaly/Sanya-Lex.git
 cd sanya-lex
 ```
 
@@ -40,16 +41,20 @@ dotnet publish -c Release -r linux-x64 --self-contained true
 ```
 
 ### 3. Install Dependencies
-Ensure `model.onnx` and `tokenizer.json` are placed in:
-```sh
-~/.local/share/sanya/models/
-```
+
+#### Model Requirements
+Sanya-Lex requires an ONNX-exported Sentence-Transformer model and its matching tokenizer placed in `~/.local/share/sanya/models/`:
+- **Default Model:** `all-MiniLM-L6-v2` (384-dimensional embeddings)
+- **Files needed:**
+  - `model.onnx`
+  - `tokenizer.json`
+
+> **Note:** Ensure the ONNX model outputs 384-dimensional vectors to match the database schema.
 
 ### Installation via Script
 For a quick system-wide installation, use the provided script:
 ```sh
-chmod +x install.sh
-sudo ./install.sh
+sh ./install.sh
 ```
 This will compile the project and symlink the binary to:
 ```sh
