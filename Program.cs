@@ -1,5 +1,4 @@
 ﻿using SanyaLex.Database;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace SanyaLex
@@ -16,9 +15,23 @@ namespace SanyaLex
                 return;
             }
 
-            string dbPath = "/home/faaly/SANYA/sanya-ltm.db";
-            string modelPath = "/home/faaly/SANYA/sanya-lex_model/model.onnx";
-            string tokenizerPath = "/home/faaly/SANYA/sanya-lex_model/tokenizer.json";
+            string dbPath = ConfigManager.GetDatabasePath();
+            
+            string modelPath = ConfigManager.GetModelPath();
+            if (!File.Exists(modelPath))
+            {
+                Console.Error.WriteLine($"[ERROR] ONNX model not found at: {modelPath}");
+                Console.Error.WriteLine("[HINT] Please download the model file or set SANYA_LEX_MODEL_PATH.");
+                Environment.Exit(1);
+            }
+
+            string tokenizerPath = ConfigManager.GetTokenizerPath();
+            if (!File.Exists(tokenizerPath))
+            {
+                Console.Error.WriteLine($"[ERROR] Tokenizer file not found at: {tokenizerPath}");
+                Console.Error.WriteLine("[HINT] Please provide tokenizer.json or set SANYA_LEX_TOKENIZER_PATH.");
+                Environment.Exit(1);
+            }
 
             using var dbManager = new DbManager(dbPath);
             using var embManager = new EmbeddingManager(modelPath, tokenizerPath);
