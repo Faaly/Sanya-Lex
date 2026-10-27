@@ -20,7 +20,7 @@
 ---
 
 ## Prerequisites
-- **.NET 7+ SDK** (for Native AOT compilation)
+- **.NET 10 SDK** (for Native AOT compilation)
 - **ONNX Runtime** (embedded for embeddings)
 - **SQLite** (for vector storage)
 
@@ -96,4 +96,4 @@ sanya-lex --fact "What language is used in the project?"
 ---
 
 ## License
-MIT © [Your Name/Organization]
+MIT © 2026 Faaly
