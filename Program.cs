@@ -16,20 +16,24 @@ namespace SanyaLex
             }
 
             string dbPath = ConfigManager.GetDatabasePath();
-            
+
             string modelPath = ConfigManager.GetModelPath();
             if (!File.Exists(modelPath))
             {
-                Console.Error.WriteLine($"[ERROR] ONNX model not found at: {modelPath}");
-                Console.Error.WriteLine("[HINT] Please download the model file or set SANYA_LEX_MODEL_PATH.");
+                Console.Error.WriteLine($"[ERROR] Sanya-Lex model file not found!");
+                Console.Error.WriteLine($"[INFO]  Expected path: {modelPath}");
+                Console.Error.WriteLine($"[HINT]  1. Check or edit your settings in: {ConfigManager.GetSettingsPath()}");
+                Console.Error.WriteLine($"[HINT]  2. Download the required ONNX model and place it in the path above.");
                 Environment.Exit(1);
             }
 
             string tokenizerPath = ConfigManager.GetTokenizerPath();
             if (!File.Exists(tokenizerPath))
             {
-                Console.Error.WriteLine($"[ERROR] Tokenizer file not found at: {tokenizerPath}");
-                Console.Error.WriteLine("[HINT] Please provide tokenizer.json or set SANYA_LEX_TOKENIZER_PATH.");
+                Console.Error.WriteLine($"[ERROR] Sanya-Lex tokenizer file not found!");
+                Console.Error.WriteLine($"[INFO]  Expected path: {tokenizerPath}");
+                Console.Error.WriteLine($"[HINT]  1. Check or edit your settings in: {ConfigManager.GetSettingsPath()}");
+                Console.Error.WriteLine($"[HINT]  2. Provide tokenizer.json in the path above.");
                 Environment.Exit(1);
             }
 
