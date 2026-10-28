@@ -25,7 +25,7 @@ sudo mkdir -p /opt/sanya-lex
 sudo rm -rf /opt/sanya-lex/*
 sudo cp -r "$PUBLISH_DIR"/* /opt/sanya-lex/
 
-BINARY_NAME="sanya-lex" 
+BINARY_NAME="Sanya-Lex" 
 
 sudo ln -sf "/opt/sanya-lex/$BINARY_NAME" /usr/local/bin/sanya-lex
 sudo chmod +x /usr/local/bin/sanya-lex
